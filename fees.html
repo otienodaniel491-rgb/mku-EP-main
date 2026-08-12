@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fee Management — EduPortal</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="js/api.js"></script>
+    <script>requireLogin();</script>
+</head>
+<body>
+
+    <nav class="sidebar">
+        <div class="sidebar-brand">Edu<span>Portal</span></div>
+        <ul class="sidebar-menu">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="admissions.html">Admissions</a></li>
+            <li><a href="courses.html">Courses Offered</a></li>
+            <li><a href="accommodation.html">Accommodation Booking</a></li>
+            <li><a href="fees.html" class="active">Fee Management</a></li>
+            <li><a href="about.html">About Us</a></li>
+            <li><a href="help.html">Help Desk</a></li>
+            <li><a href="login.html">Login</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            &copy; 2026 EduPortal — Mount Kenya University
+        </div>
+    </nav>
+
+    <main class="main-content form-page">
+        <div class="form-container">
+            <h2>Fee Management &amp; Registration Form</h2>
+            <form action="/submit-fee-details" method="POST" id="feeManagementForm">
+
+                <fieldset>
+                    <legend>Student &amp; Academic Information</legend>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="studentId">Student ID *</label>
+                            <input type="text" id="studentId" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="fullName">Full Name *</label>
+                            <input type="text" id="fullName" name="full_name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="course">Course *</label>
+                            <select id="course" name="course" required>
+                                <option value="">Choose a program</option>
+                                <option value="BIT">BSc. Information Technology</option>
+                                <option value="BBIT">BSc. Business Information Technology</option>
+                                <option value="BCE">BSc. Computer Engineering</option>
+                                <option value="BAI">Bachelor of Artificial Intelligence</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="semester">Semester *</label>
+                            <select id="semester" name="semester" required>
+                                <option value="">Select semester</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                            </select>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <fieldset>
+                    <legend>Fee Structure (KSH)</legend>
+                    <table class="fee-breakdown">
+                        <tr><th>Component</th><th>Amount</th></tr>
+                        <tr><td>Tuition Fee</td><td><input type="number" id="tuitionFee" value="70000" readonly></td></tr>
+                        <tr><td>Statutory Fee</td><td><input type="number" id="statutoryFee" value="10000" readonly></td></tr>
+                        <tr><td>Discount</td><td><input type="number" id="discount" value="0" min="0"></td></tr>
+                        <tr style="font-weight: bold;"><td>Total</td><td><input type="number" id="totalAmount" value="80000" readonly></td></tr>
+                    </table>
+                </fieldset>
+
+                <fieldset>
+                    <legend>Payment Details</legend>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Method *</label>
+                            <div class="payment-methods">
+                                <label class="radio-option"><input type="radio" name="pay" value="card" required> Card</label>
+                                <label class="radio-option"><input type="radio" name="pay" value="mpesa"> M-Pesa</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="transId">Transaction ID *</label>
+                            <input type="text" id="transId" name="trans_id" required>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <div class="btn-container">
+                    <button type="submit" class="btn btn-primary btn-block" id="feeBtn">Submit Fee Record</button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        document.getElementById('studentId').value = localStorage.getItem('eduportal_reg') || '';
+        document.getElementById('fullName').value = localStorage.getItem('eduportal_name') || '';
+
+        // Recalculates the total whenever the discount changes.
+        // (Original bug: mismatched quotes + wrong element id meant this never ran.)
+        // This is a live preview only — the server always recalculates the
+        // authoritative total from its own fee constants before saving.
+        const tuition = document.getElementById('tuitionFee');
+        const statutory = document.getElementById('statutoryFee');
+        const discount = document.getElementById('discount');
+        const total = document.getElementById('totalAmount');
+
+        function calculateTotal() {
+            const sum = parseFloat(tuition.value) + parseFloat(statutory.value) - (parseFloat(discount.value) || 0);
+            total.value = sum.toFixed(2);
+        }
+
+        discount.addEventListener('input', calculateTotal);
+
+        const form = document.getElementById('feeManagementForm');
+        const btn = document.getElementById('feeBtn');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            btn.disabled = true;
+            btn.textContent = 'Submitting...';
+
+            const payload = {
+                fullName: document.getElementById('fullName').value,
+                course: document.getElementById('course').value,
+                semester: document.getElementById('semester').value,
+                discount: discount.value,
+                paymentMethod: form.querySelector('input[name="pay"]:checked')?.value,
+                transactionId: document.getElementById('transId').value,
+            };
+
+            try {
+                const data = await apiRequest('/fees', { method: 'POST', body: JSON.stringify(payload) });
+                showMessage(form, `Fee record submitted. Total: KSH ${data.totalAmount}`, 'success');
+                form.reset();
+                document.getElementById('studentId').value = localStorage.getItem('eduportal_reg') || '';
+                document.getElementById('fullName').value = localStorage.getItem('eduportal_name') || '';
+                document.getElementById('tuitionFee').value = 70000;
+                document.getElementById('statutoryFee').value = 10000;
+                document.getElementById('totalAmount').value = 80000;
+            } catch (err) {
+                showMessage(form, err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Submit Fee Record';
+            }
+        });
+    </script>
+
+</body>
+</html>

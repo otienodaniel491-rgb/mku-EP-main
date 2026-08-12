@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admissions — EduPortal</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="js/api.js" defer></script>
+</head>
+<body>
+
+    <nav class="sidebar">
+        <div class="sidebar-brand">Edu<span>Portal</span></div>
+        <ul class="sidebar-menu">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="admissions.html" class="active">Admissions</a></li>
+            <li><a href="courses.html">Courses Offered</a></li>
+            <li><a href="accommodation.html">Accommodation Booking</a></li>
+            <li><a href="fees.html">Fee Management</a></li>
+            <li><a href="about.html">About Us</a></li>
+            <li><a href="help.html">Help Desk</a></li>
+            <li><a href="login.html">Login</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            &copy; 2026 EduPortal — Mount Kenya University
+        </div>
+    </nav>
+
+    <main class="main-content form-page">
+        <div class="form-container">
+            <h2>Student Registration</h2>
+            <form id="registrationForm">
+
+                <div class="form-group">
+                    <label for="fullName">Full Name</label>
+                    <input type="text" id="fullName" name="fullName" placeholder="e.g. Jane Wanjiru" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" placeholder="you@example.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="dob">Date of Birth</label>
+                    <input type="date" id="dob" name="dob" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Gender</label>
+                    <div class="gender-group">
+                        <div class="gender-option">
+                            <input type="radio" id="male" name="gender" value="male" required>
+                            <label for="male">Male</label>
+                        </div>
+                        <div class="gender-option">
+                            <input type="radio" id="female" name="gender" value="female">
+                            <label for="female">Female</label>
+                        </div>
+                        <div class="gender-option">
+                            <input type="radio" id="other" name="gender" value="other">
+                            <label for="other">Other</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="course">Select Course / Program</label>
+                    <select id="course" name="course" required>
+                        <option value="" disabled selected>Choose a program...</option>
+                        <option value="BIT">BSc. Information Technology</option>
+                        <option value="BBIT">BSc. Business Information Technology</option>
+                        <option value="BCE">BSc. Computer Engineering</option>
+                        <option value="BAI">Bachelor of Artificial Intelligence</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Create Password</label>
+                    <input type="password" id="password" name="password" minlength="8" placeholder="Minimum 8 characters" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block" id="registerBtn">Register Student</button>
+
+            </form>
+
+            <div class="form-footer">
+                Already have an account? <a href="login.html">Login here</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const form = document.getElementById('registrationForm');
+        const btn = document.getElementById('registerBtn');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            btn.disabled = true;
+            btn.textContent = 'Registering...';
+
+            const payload = {
+                fullName: document.getElementById('fullName').value,
+                email: document.getElementById('email').value,
+                dob: document.getElementById('dob').value,
+                gender: form.querySelector('input[name="gender"]:checked')?.value,
+                course: document.getElementById('course').value,
+                password: document.getElementById('password').value,
+            };
+
+            try {
+                const data = await apiRequest('/auth/register', {
+                    method: 'POST',
+                    body: JSON.stringify(payload),
+                });
+                setSession(data.token, payload.fullName, data.registrationNumber);
+                showMessage(form, `Registered! Your student number is ${data.registrationNumber}. Redirecting...`, 'success');
+                setTimeout(() => { window.location.href = 'index.html'; }, 2000);
+            } catch (err) {
+                showMessage(form, err.message, 'error');
+                btn.disabled = false;
+                btn.textContent = 'Register Student';
+            }
+        });
+    </script>
+
+</body>
+</html>

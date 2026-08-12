@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login — EduPortal</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="js/api.js" defer></script>
+</head>
+<body>
+    <div class="auth-page">
+        <div class="auth-card">
+            <div class="brand">Edu<span style="color: var(--gold);">Portal</span></div>
+            <p class="subtitle">Student Registration &amp; Admissions</p>
+
+            <form id="loginForm" class="login-form">
+                <div class="input-group">
+                    <label for="reg-number">Student Registration Number</label>
+                    <input
+                        type="text"
+                        id="reg-number"
+                        name="registrationNumber"
+                        placeholder="BIT/2022/54822"
+                        required
+                        autocomplete="username"
+                    >
+                </div>
+
+                <div class="input-group">
+                    <div class="label-wrapper">
+                        <label for="password">Password</label>
+                        <a href="#" class="link-small">Forgot password?</a>
+                    </div>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="Enter your password"
+                        required
+                        autocomplete="current-password"
+                    >
+                </div>
+
+                <div class="form-actions">
+                    <label class="checkbox-line">
+                        <input type="checkbox" name="rememberMe"> Keep me logged in
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block" id="loginBtn">Log In</button>
+            </form>
+
+            <div class="auth-footer">
+                New student? <a href="admissions.html" class="link-small">Register here</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('loginForm');
+        const btn = document.getElementById('loginBtn');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            btn.disabled = true;
+            btn.textContent = 'Logging in...';
+
+            const payload = {
+                registrationNumber: document.getElementById('reg-number').value,
+                password: document.getElementById('password').value,
+            };
+
+            try {
+                const data = await apiRequest('/auth/login', {
+                    method: 'POST',
+                    body: JSON.stringify(payload),
+                });
+                setSession(data.token, data.fullName, data.registrationNumber);
+                showMessage(form, `Welcome back, ${data.fullName}. Redirecting...`, 'success');
+                setTimeout(() => { window.location.href = 'index.html'; }, 1200);
+            } catch (err) {
+                showMessage(form, err.message, 'error');
+                btn.disabled = false;
+                btn.textContent = 'Log In';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accommodation Booking — EduPortal</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="js/api.js"></script>
+    <script>requireLogin();</script>
+</head>
+<body>
+
+    <nav class="sidebar">
+        <div class="sidebar-brand">Edu<span>Portal</span></div>
+        <ul class="sidebar-menu">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="admissions.html">Admissions</a></li>
+            <li><a href="courses.html">Courses Offered</a></li>
+            <li><a href="accommodation.html" class="active">Accommodation Booking</a></li>
+            <li><a href="fees.html">Fee Management</a></li>
+            <li><a href="about.html">About Us</a></li>
+            <li><a href="help.html">Help Desk</a></li>
+            <li><a href="login.html">Login</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            &copy; 2026 EduPortal — Mount Kenya University
+        </div>
+    </nav>
+
+    <main class="main-content form-page">
+        <div class="form-container">
+            <h2>Hostel &amp; Accommodation Booking</h2>
+
+            <form id="accommodationForm">
+
+                <div class="form-group">
+                    <label for="reg-number">Registration Number</label>
+                    <input type="text" id="reg-number" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label for="full-name">Full Name</label>
+                    <input type="text" id="full-name" name="full_name" placeholder="e.g. Jane Wanjiru" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Gender</label>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="gender" value="male" required> Male
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="gender" value="female"> Female
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="gender" value="other"> Other
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="campus">Select Campus Location</label>
+                    <select id="campus" name="campus" required>
+                        <option value="">-- Select Preferred Campus --</option>
+                        <option value="thika">Main Campus, Thika</option>
+                        <option value="nairobi">Nairobi Campus</option>
+                        <option value="mombasa">Mombasa Campus</option>
+                        <option value="kisumu">Kisumu Campus</option>
+                        <option value="kisumu-odel">Kisumu ODEL Center</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="room-type">Preferred Room Type</label>
+                    <select id="room-type" name="room_type" required>
+                        <option value="">-- Select Preferred Room --</option>
+                        <option value="single">Single Room</option>
+                        <option value="double">Sharing Room (max 2)</option>
+                        <option value="quad">Sharing Room (max 4)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-line">
+                        <input type="checkbox" name="terms" required> I agree to the Mount Kenya University housing rules and conditions.
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block" id="bookBtn">Submit Booking Application</button>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        document.getElementById('reg-number').value = localStorage.getItem('eduportal_reg') || '';
+        document.getElementById('full-name').value = localStorage.getItem('eduportal_name') || '';
+
+        const form = document.getElementById('accommodationForm');
+        const btn = document.getElementById('bookBtn');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            btn.disabled = true;
+            btn.textContent = 'Submitting...';
+
+            const payload = {
+                fullName: document.getElementById('full-name').value,
+                gender: form.querySelector('input[name="gender"]:checked')?.value,
+                campus: document.getElementById('campus').value,
+                roomType: document.getElementById('room-type').value,
+            };
+
+            try {
+                await apiRequest('/accommodation', { method: 'POST', body: JSON.stringify(payload) });
+                showMessage(form, 'Booking submitted — awaiting confirmation.', 'success');
+                form.reset();
+                document.getElementById('reg-number').value = localStorage.getItem('eduportal_reg') || '';
+                document.getElementById('full-name').value = localStorage.getItem('eduportal_name') || '';
+            } catch (err) {
+                showMessage(form, err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Submit Booking Application';
+            }
+        });
+    </script>
+
+</body>
+</html>
