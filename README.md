@@ -1,6 +1,6 @@
 # EduPortal — Mount Kenya University Student Registration Portal
 
-A full-stack student registration system: static HTML/CSS/JS frontend backed by a Node/Express API on TiDB Serverless (MySQL-compatible). Handles student registration, login, hostel accommodation booking, and fee management.
+A full-stack student registration system: static HTML/CSS/JS frontend backed by a Node/Express API on TiDB Serverless (MySQL-compatible). Handles student registration, login, hostel accommodation booking, and fee management..
 
 ---
 
